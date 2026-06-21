@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  db:
+    image: docker.io/library/postgres:15
+    container_name: openeducat-db
+    restart: always
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - openeducat-stack_default
+
+  web:
+    image: docker.io/library/odoo:18
+    container_name: openeducat-web
+    depends_on:
+      - db
+    ports:
+      - "8080:8069"
+    restart: always
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./openeducat-addons/openeducat_erp:/mnt/extra-addons:Z
+    networks:
+      - openeducat-stack_default
+
+volumes:
+  db_data:
+  odoo_data:
+
+networks:
+  openeducat-stack_default:
+    external: true
