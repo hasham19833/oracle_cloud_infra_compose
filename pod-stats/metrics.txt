@@ -1,0 +1,4 @@
+# TYPE container_status gauge
+container_status{name="openeducat-db"} 1
+container_status{name="openeducat-web"} 1
+container_status{name="prometheus"} 1
