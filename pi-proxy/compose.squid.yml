@@ -1,0 +1,19 @@
+version: "3.8"
+
+networks:
+  proxy-monitoring:
+    external: true
+
+services:
+  squid:
+    image: docker.io/ubuntu/squid:latest
+    container_name: squid
+    restart: unless-stopped
+    networks:
+      - proxy-monitoring
+    ports:
+      - "2240:3128"
+    volumes:
+      - ./volume/squid.conf:/etc/squid/squid.conf:ro
+      - ./secrets/passwd:/etc/squid/passwd:ro
+      - ./volume/logs:/var/log/squid
