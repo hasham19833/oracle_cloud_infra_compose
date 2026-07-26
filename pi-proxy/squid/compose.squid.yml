@@ -12,8 +12,10 @@ services:
     networks:
       - proxy-monitoring
     ports:
-      - "2240:3128"
+      - "2240:3128"  #existing http
+      - "2241:3129"  #https
     volumes:
       - ./volume/squid.conf:/etc/squid/squid.conf:ro
       - ./secrets/passwd:/etc/squid/passwd:ro
+      - ./secrets/certs:/etc/squid/certs:ro
       - ./volume/logs:/var/log/squid
