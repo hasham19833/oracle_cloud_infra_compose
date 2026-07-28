@@ -1,0 +1,57 @@
+// ============================================================
+//  Alloy - Pi proxy monitoring (Phase 1)
+//  Sources : node-exporter metrics + squid access.log
+//  Targets : Grafana Cloud (Prometheus metrics + Loki logs)
+// ============================================================
+
+// Live debugging lets us SEE data in the Alloy UI before Grafana
+livedebugging {
+  enabled = true
+}
+
+// ------------------------------------------------------------
+// 1) METRICS  -  scrape Node Exporter (on the Pi HOST network)
+// ------------------------------------------------------------
+prometheus.scrape "node" {
+  targets = [
+    { "__address__" = "host.containers.internal:9100", "instance" = "raspberrypi" },
+  ]
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafanacloud.receiver]
+}
+
+prometheus.remote_write "grafanacloud" {
+  endpoint {
+    url = "https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push"
+    basic_auth {
+      username = "1678123"
+      password = "glc_eyJvIjoiMTE3MDc0NSIsIm4iOiJzdGFjay05ODExODktaG0td3JpdGUtcGktcHJveHktd3JpdGUtdG9rZW4iLCJrIjoibThrTnMwdk9vOUgyMlpUNW9MQWI3ODY2IiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0="
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// 2) LOGS  -  tail Squid access.log
+// ------------------------------------------------------------
+local.file_match "squid_logs" {
+  path_targets = [
+    { "__path__" = "/var/log/squid/access.log", "job" = "squid", "host" = "raspberrypi" },
+  ]
+  sync_period = "5s"
+}
+
+loki.source.file "squid" {
+  targets       = local.file_match.squid_logs.targets
+  forward_to    = [loki.write.grafanacloud.receiver]
+  tail_from_end = true
+}
+
+loki.write "grafanacloud" {
+  endpoint {
+    url = "https://logs-prod-006.grafana.net/loki/api/v1/push"
+    basic_auth {
+      username = "938969"
+      password = "glc_eyJvIjoiMTE3MDc0NSIsIm4iOiJzdGFjay05ODExODktaG0td3JpdGUtcGktcHJveHktd3JpdGUtdG9rZW4iLCJrIjoibThrTnMwdk9vOUgyMlpUNW9MQWI3ODY2IiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0="
+    }
+  }
+}

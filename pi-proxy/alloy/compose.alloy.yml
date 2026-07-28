@@ -1,0 +1,26 @@
+version: "3.8"
+
+networks:
+  proxy-monitoring:
+    external: true
+
+services:
+  alloy:
+    image: docker.io/grafana/alloy:latest
+    container_name: alloy
+    restart: unless-stopped
+    networks:
+      - proxy-monitoring
+    extra_hosts:
+      - "host.containers.internal:host-gateway"   # lets Alloy reach the Pi host
+    ports:
+      - "12345:12345"                             # Alloy web UI
+    volumes:
+      - ./volume/config.alloy:/etc/alloy/config.alloy:ro
+      - ./volume/data:/var/lib/alloy/data
+      - /home/admin/projects/pi-proxy/squid/volume/logs:/var/log/squid:ro
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
